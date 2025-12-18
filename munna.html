@@ -536,7 +536,7 @@
                 <span style="position: relative; z-index: 1;">🎲 Draw Winner</span>
             </button>
             <button class="pdf-btn" id="pdfBtn">
-                <span style="position: relative; z-index: 1;">📄 Download PDF</span>
+                <span style="position: relative; z-index: 1;">📄 Download Images</span>
             </button>
             <button class="reset-btn" id="resetBtn">
                 <span style="position: relative; z-index: 1;">🔄 Reset System</span>
@@ -1042,146 +1042,109 @@
             }
         }
 
-        // PDF Generation Function with Bengali Support using pdfMake
+        // Image Generation Function with Bengali Support
         async function generatePDF() {
             if (drawnStudentsList.length === 0) {
                 alert('⚠️ No lottery results to download! Please draw some winners first.');
                 return;
             }
 
-            // Prepare table data
-            const tableBody = [
-                // Header row
-                [
-                    { text: 'Pos.', style: 'tableHeader', bold: true },
-                    { text: 'Student Name', style: 'tableHeader', bold: true },
-                    { text: 'Father Name', style: 'tableHeader', bold: true },
-                    { text: 'Mother Name', style: 'tableHeader', bold: true }
-                ]
-            ];
-
-            // Add student data
-            drawnStudentsList.forEach(student => {
-                tableBody.push([
-                    { text: student.position.toString(), style: 'tableCell' },
-                    { text: student.name, style: 'tableCell' },
-                    { text: student.fatherName, style: 'tableCell' },
-                    { text: student.motherName, style: 'tableCell' }
-                ]);
-            });
-
             const today = new Date().toLocaleDateString('en-GB');
+            const studentsPerPage = 30;
+            const totalPages = Math.ceil(drawnStudentsList.length / studentsPerPage);
 
-            // Define document structure
-            const docDefinition = {
-                pageSize: 'A4',
-                pageMargins: [0, 0, 0, 0], // No margins
-                content: [
-                    // Border box
-                    {
-                        canvas: [
-                            {
-                                type: 'rect',
-                                x: 0,
-                                y: 0,
-                                w: 595, // A4 width in points
-                                h: 842, // A4 height in points
-                                lineWidth: 2,
-                                lineColor: '#000000'
-                            }
-                        ]
-                    },
-                    // Title
-                    {
-                        text: 'Dumuria Government Technical School & College',
-                        style: 'header',
-                        margin: [10, 10, 10, 5]
-                    },
-                    {
-                        text: 'Class Six Student List - Lottery Results',
-                        style: 'subheader',
-                        margin: [10, 0, 10, 5]
-                    },
-                    {
-                        text: `Date: ${today}`,
-                        style: 'date',
-                        margin: [10, 0, 10, 15]
-                    },
-                    // Table
-                    {
-                        table: {
-                            headerRows: 1,
-                            widths: [40, '*', '*', '*'],
-                            body: tableBody
-                        },
-                        layout: {
-                            hLineWidth: function(i, node) {
-                                if (i === 0 || i === 1) return 1;
-                                return 0.5;
-                            },
-                            vLineWidth: function(i, node) {
-                                return 0;
-                            },
-                            hLineColor: function(i, node) {
-                                return (i === 0 || i === 1) ? '#000000' : '#cccccc';
-                            },
-                            paddingLeft: function(i, node) { return 5; },
-                            paddingRight: function(i, node) { return 5; },
-                            paddingTop: function(i, node) { return 3; },
-                            paddingBottom: function(i, node) { return 3; }
-                        },
-                        margin: [10, 0, 10, 0]
-                    }
-                ],
-                footer: function(currentPage, pageCount) {
-                    return {
-                        columns: [
-                            {
-                                text: `Page ${currentPage} of ${pageCount}`,
-                                alignment: 'center',
-                                margin: [0, 0, 0, 5]
-                            },
-                            {
-                                text: `Total Students: ${drawnStudentsList.length}`,
-                                alignment: 'right',
-                                margin: [0, 0, 10, 5]
-                            }
-                        ],
-                        fontSize: 8
-                    };
-                },
-                styles: {
-                    header: {
-                        fontSize: 18,
-                        bold: true,
-                        alignment: 'center'
-                    },
-                    subheader: {
-                        fontSize: 14,
-                        bold: true,
-                        alignment: 'center'
-                    },
-                    date: {
-                        fontSize: 10,
-                        alignment: 'center'
-                    },
-                    tableHeader: {
-                        fontSize: 11,
-                        bold: true,
-                        fillColor: '#f0f0f0'
-                    },
-                    tableCell: {
-                        fontSize: 9
-                    }
-                },
-                defaultStyle: {
-                    font: 'Roboto' // This will handle Bengali text properly
-                }
-            };
+            // Create a temporary container for rendering
+            const container = document.createElement('div');
+            container.style.position = 'absolute';
+            container.style.left = '-9999px';
+            container.style.top = '0';
+            document.body.appendChild(container);
 
-            // Generate and download PDF
-            const filename = `Class_Six_Lottery_${today.replace(/\//g, '-')}.pdf`;
-            pdfMake.createPdf(docDefinition).download(filename);
+            // Generate each page as image
+            for (let pageNum = 0; pageNum < totalPages; pageNum++) {
+                const startIdx = pageNum * studentsPerPage;
+                const endIdx = Math.min(startIdx + studentsPerPage, drawnStudentsList.length);
+                const pageStudents = drawnStudentsList.slice(startIdx, endIdx);
+
+                // Create page HTML
+                const pageHTML = `
+                    <div style="width: 794px; height: 1123px; background: white; border: 3px solid black; font-family: Arial, sans-serif; position: relative; box-sizing: border-box;">
+                        <!-- Header -->
+                        <div style="text-align: center; padding: 15px 20px;">
+                            <div style="font-size: 24px; font-weight: bold; margin-bottom: 8px;">
+                                Dumuria Government Technical School & College
+                            </div>
+                            <div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">
+                                Class Six Student List - Lottery Results
+                            </div>
+                            <div style="font-size: 14px; color: #666;">
+                                Date: ${today}
+                            </div>
+                        </div>
+
+                        <!-- Table -->
+                        <div style="padding: 0 15px;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                                <thead>
+                                    <tr style="background: #f0f0f0; border-bottom: 2px solid black;">
+                                        <th style="padding: 10px 8px; text-align: left; width: 50px; font-weight: bold; border-right: 1px solid #ddd;">Pos.</th>
+                                        <th style="padding: 10px 8px; text-align: left; font-weight: bold; border-right: 1px solid #ddd;">Student Name</th>
+                                        <th style="padding: 10px 8px; text-align: left; font-weight: bold; border-right: 1px solid #ddd;">Father Name</th>
+                                        <th style="padding: 10px 8px; text-align: left; font-weight: bold;">Mother Name</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${pageStudents.map((student, idx) => `
+                                        <tr style="border-bottom: 1px solid #e0e0e0;">
+                                            <td style="padding: 8px; border-right: 1px solid #ddd;">${student.position}</td>
+                                            <td style="padding: 8px; border-right: 1px solid #ddd;">${student.name}</td>
+                                            <td style="padding: 8px; border-right: 1px solid #ddd;">${student.fatherName}</td>
+                                            <td style="padding: 8px;">${student.motherName}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Footer -->
+                        <div style="position: absolute; bottom: 10px; width: 100%; padding: 0 20px; font-size: 11px; color: #666; display: flex; justify-content: space-between;">
+                            <div style="text-align: center; flex: 1;">Page ${pageNum + 1} of ${totalPages}</div>
+                            <div style="text-align: right;">Total Students: ${drawnStudentsList.length}</div>
+                        </div>
+                    </div>
+                `;
+
+                container.innerHTML = pageHTML;
+                const pageElement = container.firstElementChild;
+
+                // Wait a bit for fonts to load
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                // Convert to canvas using html2canvas
+                const canvas = await html2canvas(pageElement, {
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#ffffff',
+                    width: 794,
+                    height: 1123
+                });
+
+                // Convert canvas to image and download
+                const imgData = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.href = imgData;
+                link.download = `Class_Six_Lottery_Page_${pageNum + 1}_${today.replace(/\//g, '-')}.png`;
+                link.click();
+
+                // Small delay between downloads
+                await new Promise(resolve => setTimeout(resolve, 300));
+            }
+
+            // Remove temporary container
+            document.body.removeChild(container);
+
+            alert(`✅ ${totalPages} image(s) downloaded successfully!`);
         }
 
         // Event Listeners
@@ -1203,8 +1166,7 @@
         });
     </script>
     
-    <!-- pdfMake Library for Bengali Support -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <!-- html2canvas Library for Image Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </body>
 </html>
