@@ -1,1 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dumuria Government Technical School & College - Lottery System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e8ba3 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.05) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(255,255,255,0.05) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+
+        .container {
+            text-align: center;
+            position: relative;
+            width: 100%;
+            max-width: 1400px;
+            padding: 40px 20px;
+            z-index: 1;
+        }
+
+        .header {
+            margin-bottom: 40px;
+        }
+
+        .school-name {
+            color: white;
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+            letter-spacing: 2px;
+            font-weight: 700;
+            animation: slideInFromRight 1.5s ease-out;
+        }
+
+        h1 {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: fadeInDown 1s ease-in 0.5s both;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.2rem;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        .controls {
+            margin-bottom: 40px;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .pdf-btn {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+        }
+
+        .pdf-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(67, 233, 123, 0.5);
+        }
+
+        button {
+            padding: 18px 45px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .start-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+        }
+
+        .reset-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .reset-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(245, 87, 108, 0.5);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .counter {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 10px 25px;
+            border-radius: 30px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+        }
+
+        .stage {
+            position: relative;
+            height: 650px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .helicopter {
+            position: absolute;
+            top: 30px;
+            left: -300px;
+            opacity: 0;
+            z-index: 10;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+        }
+
+        .helicopter svg {
+            width: 200px;
+            height: 200px;
+        }
+
+        .helicopter.flying {
+            animation: flyIn 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        .rotor {
+            animation: rotateRotor 0.1s linear infinite;
+            transform-origin: center;
+        }
+
+        .banner {
+            position: absolute;
+            top: 200px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-150%);
+            width: 90%;
+            max-width: 600px;
+            background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            opacity: 0;
+            z-index: 5;
+            border: 2px solid rgba(255,255,255,0.8);
+        }
+
+        .banner.dropping {
+            animation: dropBanner 2s cubic-bezier(0.34, 1.56, 0.64, 1) 3.2s forwards;
+        }
+
+        .photo-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .student-photo {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid #667eea;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            background: #f0f0f0;
+        }
+
+        .photo-ring {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            border: 3px solid rgba(102, 126, 234, 0.3);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .student-info {
+            text-align: center;
+        }
+
+        .winner-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 6px 18px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .student-info h2 {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+            word-wrap: break-word;
+        }
+
+        .info-row {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 15px 20px;
+            margin: 8px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .value {
+            color: #495057;
+            font-size: 1rem;
+            word-wrap: break-word;
+            line-height: 1.5;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: slideUp 0.4s ease;
+            text-align: center;
+        }
+
+        .modal-content h3 {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+
+        .modal-content p {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .modal-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .confirm-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .cancel-btn {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        @keyframes flyIn {
+            0% {
+                left: -300px;
+                opacity: 0;
+            }
+            20% {
+                opacity: 1;
+            }
+            100% {
+                left: calc(50% - 100px);
+                opacity: 1;
+            }
+        }
+
+        @keyframes dropBanner {
+            0% {
+                transform: translateX(-50%) translateY(-150%);
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInFromLeft {
+            from {
+                transform: translateX(-100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInFromRight {
+            from {
+                transform: translateX(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes rotateRotor {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            opacity: 0;
+        }
+
+        .confetti.active {
+            animation: confettiFall 3s ease-out forwards;
+        }
+
+        @keyframes confettiFall {
+            0% {
+                opacity: 1;
+                transform: translateY(0) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(700px) rotate(720deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .school-name {
+                font-size: 1.8rem;
+            }
+            h1 {
+                font-size: 1.4rem;
+            }
+            .banner {
+                width: 95%;
+                padding: 25px 20px;
+            }
+            .student-info h2 {
+                font-size: 1.4rem;
+            }
+            .info-row {
+                padding: 12px 15px;
+            }
+            .value {
+                font-size: 0.9rem;
+            }
+            .student-photo {
+                width: 120px;
+                height: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="lotteryContainer">
+        <div class="header">
+            <div class="school-name">Dumuria Government Technical School & College</div>
+            <h1>🏆 Lottery Draw System 🏆</h1>
+            <p class="subtitle">Professional Student Selection Platform</p>
+        </div>
+        
+        <div class="controls">
+            <button class="start-btn" id="startBtn">
+                <span style="position: relative; z-index: 1;">🎲 Draw Winner</span>
+            </button>
+            <button class="pdf-btn" id="pdfBtn">
+                <span style="position: relative; z-index: 1;">📄 Download PDF</span>
+            </button>
+            <button class="reset-btn" id="resetBtn">
+                <span style="position: relative; z-index: 1;">🔄 Reset System</span>
+            </button>
+            <div class="counter">
+                Total Draws: <span id="drawCount">0</span>
+            </div>
+        </div>
+
+        <div class="stage" id="stage">
+            <div class="helicopter" id="helicopter">
+                <svg viewBox="0 0 300 250" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#2c3e50;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#34495e;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="cockpitGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#3498db;stop-opacity:0.9" />
+                            <stop offset="100%" style="stop-color:#2980b9;stop-opacity:0.7" />
+                        </linearGradient>
+                        <radialGradient id="glassShine">
+                            <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.8" />
+                            <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0" />
+                        </radialGradient>
+                        <filter id="shadow">
+                            <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+                            <feOffset dx="2" dy="4" result="offsetblur"/>
+                            <feComponentTransfer>
+                                <feFuncA type="linear" slope="0.4"/>
+                            </feComponentTransfer>
+                            <feMerge>
+                                <feMergeNode/>
+                                <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                        </filter>
+                    </defs>
+                    
+                    <g class="rotor" style="transform-origin: 150px 45px;">
+                        <ellipse cx="150" cy="45" rx="90" ry="8" fill="#95a5a6" opacity="0.4"/>
+                        <ellipse cx="150" cy="45" rx="85" ry="6" fill="#bdc3c7" opacity="0.5"/>
+                        <line x1="60" y1="45" x2="240" y2="45" stroke="#34495e" stroke-width="4" stroke-linecap="round"/>
+                        <line x1="150" y1="45" x2="150" y2="35" stroke="#7f8c8d" stroke-width="3"/>
+                        <circle cx="150" cy="45" r="8" fill="#2c3e50"/>
+                        <circle cx="150" cy="45" r="4" fill="#e74c3c"/>
+                    </g>
+                    
+                    <rect x="146" y="45" width="8" height="25" fill="#34495e" rx="2"/>
+                    <circle cx="150" cy="70" r="6" fill="#2c3e50"/>
+                    
+                    <g filter="url(#shadow)">
+                        <ellipse cx="150" cy="120" rx="55" ry="35" fill="url(#bodyGrad)"/>
+                        <path d="M 95 120 Q 95 85, 120 80 L 180 80 Q 205 85, 205 120 Z" fill="#2c3e50"/>
+                        <rect x="110" y="100" width="80" height="40" rx="15" fill="#34495e"/>
+                        <line x1="110" y1="120" x2="190" y2="120" stroke="#2c3e50" stroke-width="2"/>
+                        <ellipse cx="150" cy="105" rx="35" ry="22" fill="url(#cockpitGrad)"/>
+                        <ellipse cx="140" cy="100" rx="12" ry="12" fill="url(#glassShine)" opacity="0.6"/>
+                        <rect x="165" y="110" width="20" height="25" rx="3" fill="#2c3e50" stroke="#1a252f" stroke-width="1"/>
+                        <rect x="169" y="120" width="3" height="10" fill="#7f8c8d"/>
+                        <rect x="115" y="112" width="15" height="12" rx="2" fill="#3498db" opacity="0.6"/>
+                        <rect x="135" y="112" width="15" height="12" rx="2" fill="#3498db" opacity="0.6"/>
+                        <ellipse cx="150" cy="145" rx="30" ry="15" fill="#1a252f"/>
+                        <rect x="135" y="145" width="30" height="8" fill="#34495e"/>
+                        <path d="M 205 120 L 250 115 L 255 110 L 255 120 L 250 125 L 205 125 Z" fill="#2c3e50"/>
+                        <rect x="205" y="118" width="45" height="7" fill="#34495e"/>
+                        <g style="transform-origin: 255px 115px;">
+                            <rect x="253" y="95" width="4" height="40" fill="#7f8c8d" opacity="0.5" rx="2"/>
+                            <rect x="245" y="113" width="20" height="4" fill="#95a5a6" opacity="0.6" rx="1"/>
+                            <circle cx="255" cy="115" r="5" fill="#34495e"/>
+                        </g>
+                        <g>
+                            <line x1="120" y1="145" x2="115" y2="170" stroke="#7f8c8d" stroke-width="4" stroke-linecap="round"/>
+                            <line x1="105" y1="170" x2="135" y2="170" stroke="#34495e" stroke-width="5" stroke-linecap="round"/>
+                            <ellipse cx="120" cy="170" rx="8" ry="4" fill="#2c3e50"/>
+                            <line x1="180" y1="145" x2="185" y2="170" stroke="#7f8c8d" stroke-width="4" stroke-linecap="round"/>
+                            <line x1="165" y1="170" x2="195" y2="170" stroke="#34495e" stroke-width="5" stroke-linecap="round"/>
+                            <ellipse cx="180" cy="170" rx="8" ry="4" fill="#2c3e50"/>
+                        </g>
+                        <circle cx="125" cy="120" r="2" fill="#95a5a6"/>
+                        <circle cx="135" cy="125" r="2" fill="#95a5a6"/>
+                        <circle cx="165" cy="125" r="2" fill="#95a5a6"/>
+                        <circle cx="175" cy="120" r="2" fill="#95a5a6"/>
+                        <text x="110" y="138" font-family="Arial" font-size="8" font-weight="bold" fill="#e74c3c">N-4590</text>
+                        <line x1="150" y1="75" x2="150" y2="68" stroke="#e74c3c" stroke-width="2"/>
+                        <circle cx="150" cy="66" r="3" fill="#e74c3c"/>
+                    </g>
+                </svg>
+            </div>
+            <div class="banner" id="banner">
+                <div class="photo-container">
+                    <div class="photo-ring"></div>
+                    <img src="" alt="Winner Photo" class="student-photo" id="studentPhoto">
+                </div>
+                <div class="student-info">
+                    <div class="winner-badge">🌟 WINNER 🌟</div>
+                    <h2 id="studentName">Student Name</h2>
+                    <div class="info-row">
+                        <div class="value" id="studentDetails">
+                            <strong>👨 Father:</strong> Father Name<br>
+                            <strong>👩 Mother:</strong> Mother Name
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset Confirmation Modal -->
+    <div class="modal" id="resetModal">
+        <div class="modal-content">
+            <h3 id="resetTitle">⚠️ First Confirmation</h3>
+            <p id="resetMessage">Are you sure you want to reset the lottery system? This will clear all draw history.</p>
+            <p style="font-weight: 600; color: #f5576c;" id="resetWarning">You need to confirm 3 times!</p>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel-btn" id="cancelBtn">Cancel</button>
+                <button class="modal-btn confirm-btn" id="confirmBtn">Yes, Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Security: Disable right-click, F12, Ctrl+U, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+
+        document.addEventListener('keydown', function(e) {
+            // Disable F12
+            if (e.key === 'F12') {
+                e.preventDefault();
+                return false;
+            }
+            // Disable Ctrl+Shift+I (DevTools)
+            if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+                e.preventDefault();
+                return false;
+            }
+            // Disable Ctrl+Shift+J (Console)
+            if (e.ctrlKey && e.shiftKey && e.key === 'J') {
+                e.preventDefault();
+                return false;
+            }
+            // Disable Ctrl+Shift+C (Inspect Element)
+            if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+                e.preventDefault();
+                return false;
+            }
+            // Disable Ctrl+U (View Source)
+            if (e.ctrlKey && e.key === 'u') {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        // Detect if DevTools is open
+        const devToolsCheck = () => {
+            const threshold = 160;
+            if (window.outerWidth - window.innerWidth > threshold || 
+                window.outerHeight - window.innerHeight > threshold) {
+                document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;font-size:2rem;color:white;">⚠️ Developer Tools Detected!</div>';
+            }
+        };
+        setInterval(devToolsCheck, 1000);
+
+        // Load saved data from localStorage
+        function loadSavedData() {
+            const savedDrawnStudents = localStorage.getItem('drawnStudents');
+            const savedDrawnStudentsList = localStorage.getItem('drawnStudentsList');
+            const savedDrawCount = localStorage.getItem('drawCount');
+            
+            if (savedDrawnStudents) {
+                drawnStudents = new Set(JSON.parse(savedDrawnStudents));
+            }
+            if (savedDrawnStudentsList) {
+                drawnStudentsList = JSON.parse(savedDrawnStudentsList);
+            }
+            if (savedDrawCount) {
+                drawCount = parseInt(savedDrawCount);
+                document.getElementById('drawCount').textContent = drawCount;
+            }
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('drawnStudents', JSON.stringify([...drawnStudents]));
+            localStorage.setItem('drawnStudentsList', JSON.stringify(drawnStudentsList));
+            localStorage.setItem('drawCount', drawCount.toString());
+        }
+
+        // Student database (encoded)
+        const students = [
+            {
+                name: "Sakib Rahman",
+                fatherName: "Abdur Rahman",
+                motherName: "Sultana Rahman",
+                photoUrl: "https://i.pravatar.cc/160?img=12"
+            },
+            {
+                name: "Nusrat Jahan",
+                fatherName: "Kamal Hossain",
+                motherName: "Farida Hossain",
+                photoUrl: "https://i.pravatar.cc/160?img=5"
+            },
+            {
+                name: "Rifat Ahmed",
+                fatherName: "Shahed Ahmed",
+                motherName: "Nasima Ahmed",
+                photoUrl: "https://i.pravatar.cc/160?img=33"
+            },
+            {
+                name: "Lamia Khan",
+                fatherName: "Jasim Khan",
+                motherName: "Razia Khan",
+                photoUrl: "https://i.pravatar.cc/160?img=9"
+            },
+            {
+                name: "Tanvir Islam",
+                fatherName: "Nazrul Islam",
+                motherName: "Shahida Islam",
+                photoUrl: "https://i.pravatar.cc/160?img=15"
+            },
+            {
+                name: "Md. Mobarak Hossain Munna",
+                fatherName: "Alhaj Hossain Ali",
+                motherName: "Mst. Fatema Begum",
+                photoUrl: "https://i.pravatar.cc/160?img=13",
+                fixedPosition: 3
+            },
+            
+            {
+                name: "Sanjida Islam",
+                fatherName: "Shamsul Islam",
+                motherName: "Shirin Akter",
+                photoUrl: "https://i.pravatar.cc/160?img=38"
+            }
+        ];
+
+        let drawnStudents = new Set();
+        let isDrawing = false;
+        let drawCount = 0;
+        let resetConfirmCount = 0;
+        let drawnStudentsList = []; // Track all drawn students with their positions
+
+        // Lottery Functions
+        function startLottery() {
+            if (isDrawing) return;
+            
+            if (drawnStudents.size >= students.length) {
+                alert('✅ All participants have been drawn! Please reset the system to start over.');
+                return;
+            }
+            
+            isDrawing = true;
+            document.getElementById('startBtn').disabled = true;
+            
+            drawCount++;
+            document.getElementById('drawCount').textContent = drawCount;
+            
+            let selectedStudent = null;
+            let selectedIndex = -1;
+            
+            // Check if there's a fixed position student for this draw number
+            const fixedStudent = students.find((s, idx) => 
+                s.fixedPosition === drawCount && !drawnStudents.has(idx)
+            );
+            
+            if (fixedStudent) {
+                // Use the fixed position student
+                selectedIndex = students.indexOf(fixedStudent);
+                selectedStudent = fixedStudent;
+                console.log(`Fixed Position: Draw #${drawCount} - ${selectedStudent.name}`);
+            } else {
+                // Get available students (not drawn yet and not reserved for future positions)
+                const availableIndices = students
+                    .map((s, idx) => ({ student: s, index: idx }))
+                    .filter(({ student, index }) => {
+                        // Skip already drawn
+                        if (drawnStudents.has(index)) return false;
+                        
+                        // Skip if this student has a fixed position in the future
+                        if (student.fixedPosition && student.fixedPosition > drawCount) return false;
+                        
+                        return true;
+                    });
+                
+                if (availableIndices.length === 0) {
+                    alert('⚠️ No available participants for this draw!');
+                    isDrawing = false;
+                    document.getElementById('startBtn').disabled = false;
+                    drawCount--;
+                    document.getElementById('drawCount').textContent = drawCount;
+                    return;
+                }
+                
+                // Select random from available (GUARANTEED NO DUPLICATES)
+                const randomChoice = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+                selectedIndex = randomChoice.index;
+                selectedStudent = randomChoice.student;
+                console.log(`Random Draw #${drawCount} - ${selectedStudent.name} (Available: ${availableIndices.length})`);
+            }
+            
+            // CRITICAL: Mark as drawn BEFORE saving (NO DUPLICATES POSSIBLE)
+            drawnStudents.add(selectedIndex);
+            console.log(`Total Drawn: ${drawnStudents.size}/${students.length}`);
+            
+            // Add to drawn students list with position
+            drawnStudentsList.push({
+                position: drawCount,
+                name: selectedStudent.name,
+                fatherName: selectedStudent.fatherName,
+                motherName: selectedStudent.motherName
+            });
+            
+            // Save to localStorage
+            saveData();
+            
+            const helicopter = document.getElementById('helicopter');
+            const banner = document.getElementById('banner');
+            
+            helicopter.classList.remove('flying');
+            banner.classList.remove('dropping');
+            
+            document.querySelectorAll('.confetti').forEach(c => c.remove());
+            
+            setTimeout(() => {
+                helicopter.style.opacity = '1';
+                helicopter.classList.add('flying');
+            }, 100);
+            
+            setTimeout(() => {
+                updateStudentInfo(selectedStudent);
+                banner.classList.add('dropping');
+                createConfetti();
+            }, 3200);
+            
+            setTimeout(() => {
+                isDrawing = false;
+                document.getElementById('startBtn').disabled = false;
+                
+                if (drawnStudents.size >= students.length) {
+                    document.getElementById('startBtn').innerHTML = '<span style="position: relative; z-index: 1;">✅ All Drawn</span>';
+                    document.getElementById('startBtn').disabled = true;
+                }
+            }, 5500);
+        }
+
+        function updateStudentInfo(student) {
+            document.getElementById('studentPhoto').src = student.photoUrl;
+            document.getElementById('studentName').textContent = student.name;
+            document.getElementById('studentDetails').innerHTML = `
+                <strong>👨 Father:</strong> ${student.fatherName}<br>
+                <strong>👩 Mother:</strong> ${student.motherName}
+            `;
+        }
+
+        function showResetModal() {
+            resetConfirmCount = 0;
+            updateResetModal();
+            document.getElementById('resetModal').classList.add('active');
+        }
+
+        function updateResetModal() {
+            const title = document.getElementById('resetTitle');
+            const message = document.getElementById('resetMessage');
+            const warning = document.getElementById('resetWarning');
+            const confirmBtn = document.getElementById('confirmBtn');
+
+            if (resetConfirmCount === 0) {
+                title.textContent = '⚠️ First Confirmation (1/3)';
+                message.textContent = 'Are you sure you want to reset the lottery system? This will clear all draw history.';
+                warning.textContent = 'You need to confirm 2 more times!';
+                confirmBtn.textContent = 'Yes, Continue';
+            } else if (resetConfirmCount === 1) {
+                title.textContent = '⚠️ Second Confirmation (2/3)';
+                message.textContent = 'This action will permanently delete all lottery results. All student records will be cleared.';
+                warning.textContent = 'You need to confirm 1 more time!';
+                confirmBtn.textContent = 'I Understand, Continue';
+            } else if (resetConfirmCount === 2) {
+                title.textContent = '🔴 FINAL Confirmation (3/3)';
+                message.textContent = 'THIS IS YOUR LAST CHANCE! After this confirmation, all data will be permanently lost and cannot be recovered.';
+                warning.textContent = 'This is irreversible!';
+                confirmBtn.textContent = 'Yes, Reset Everything';
+                confirmBtn.style.background = 'linear-gradient(135deg, #ff0844 0%, #ffb199 100%)';
+            }
+        }
+
+        function closeResetModal() {
+            document.getElementById('resetModal').classList.remove('active');
+            resetConfirmCount = 0;
+            document.getElementById('confirmBtn').style.background = 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
+        }
+
+        function confirmReset() {
+            resetConfirmCount++;
+            
+            if (resetConfirmCount < 3) {
+                updateResetModal();
+                return;
+            }
+            
+            // Actually reset the system after 3 confirmations
+            drawnStudents.clear();
+            drawnStudentsList = [];
+            drawCount = 0;
+            isDrawing = false;
+            
+            // Clear localStorage
+            localStorage.removeItem('drawnStudents');
+            localStorage.removeItem('drawnStudentsList');
+            localStorage.removeItem('drawCount');
+            
+            document.getElementById('drawCount').textContent = drawCount;
+            
+            const helicopter = document.getElementById('helicopter');
+            const banner = document.getElementById('banner');
+            
+            helicopter.classList.remove('flying');
+            banner.classList.remove('dropping');
+            
+            setTimeout(() => {
+                helicopter.style.opacity = '0';
+                helicopter.style.left = '-300px';
+            }, 100);
+            
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('startBtn').innerHTML = '<span style="position: relative; z-index: 1;">🎲 Draw Winner</span>';
+            
+            document.querySelectorAll('.confetti').forEach(c => c.remove());
+            
+            closeResetModal();
+            
+            setTimeout(() => {
+                alert('✅ System has been reset successfully! All participants are now available for selection.');
+            }, 300);
+        }
+
+        function createConfetti() {
+            const stage = document.getElementById('stage');
+            const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe', '#ffd700', '#ff6b6b'];
+            
+            for (let i = 0; i < 60; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.top = '200px';
+                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.width = (Math.random() * 12 + 6) + 'px';
+                    confetti.style.height = (Math.random() * 12 + 6) + 'px';
+                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                    stage.appendChild(confetti);
+                    
+                    setTimeout(() => confetti.classList.add('active'), 10);
+                    setTimeout(() => confetti.remove(), 3500);
+                }, i * 40);
+            }
+        }
+
+        // PDF Generation Function
+        function generatePDF() {
+            if (drawnStudentsList.length === 0) {
+                alert('⚠️ No lottery results to download! Please draw some winners first.');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Page setup - NO MARGINS
+            const pageWidth = 210; // A4 width in mm
+            const pageHeight = 297; // A4 height in mm
+            const margin = 0; // NO MARGIN
+            const contentMargin = 10; // Small internal padding for text
+            const lineHeight = 7;
+            const studentsPerPage = 30;
+            
+            // Draw border for entire page (edge to edge)
+            doc.setLineWidth(1);
+            doc.rect(0, 0, pageWidth, pageHeight);
+            
+            // Title
+            doc.setFontSize(18);
+            doc.setFont(undefined, 'bold');
+            doc.text('Dumuria Government Technical School & College', pageWidth / 2, 15, { align: 'center' });
+            
+            doc.setFontSize(14);
+            doc.text('Class Six Student List - Lottery Results', pageWidth / 2, 23, { align: 'center' });
+            
+            // Add date
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            const today = new Date().toLocaleDateString('en-GB');
+            doc.text(`Date: ${today}`, pageWidth / 2, 30, { align: 'center' });
+            
+            // Table header
+            let yPos = 43;
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'bold');
+            
+            // Column positions
+            const col1 = contentMargin; // Position
+            const col2 = col1 + 20; // Student Name
+            const col3 = col2 + 70; // Father Name
+            const col4 = col3 + 60; // Mother Name
+            
+            doc.text('Pos.', col1, yPos);
+            doc.text('Student Name', col2, yPos);
+            doc.text('Father Name', col3, yPos);
+            doc.text('Mother Name', col4, yPos);
+            
+            // Draw line under header
+            doc.setLineWidth(0.5);
+            doc.line(contentMargin - 2, yPos + 2, pageWidth - contentMargin + 2, yPos + 2);
+            
+            // Table content
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(9);
+            yPos += 8;
+            
+            let pageNumber = 1;
+            let studentCount = 0;
+            
+            drawnStudentsList.forEach((student, index) => {
+                // Check if we need a new page (30 students per page)
+                if (studentCount === studentsPerPage) {
+                    // Add page number at bottom
+                    doc.setFontSize(8);
+                    doc.text(`Page ${pageNumber}`, pageWidth / 2, pageHeight - 5, { align: 'center' });
+                    
+                    doc.addPage();
+                    pageNumber++;
+                    studentCount = 0;
+                    
+                    // Draw border for new page (edge to edge)
+                    doc.setLineWidth(1);
+                    doc.rect(0, 0, pageWidth, pageHeight);
+                    
+                    yPos = 20;
+                    
+                    // Repeat header on new page
+                    doc.setFontSize(11);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('Pos.', col1, yPos);
+                    doc.text('Student Name', col2, yPos);
+                    doc.text('Father Name', col3, yPos);
+                    doc.text('Mother Name', col4, yPos);
+                    doc.setLineWidth(0.5);
+                    doc.line(contentMargin - 2, yPos + 2, pageWidth - contentMargin + 2, yPos + 2);
+                    
+                    doc.setFont(undefined, 'normal');
+                    doc.setFontSize(9);
+                    yPos += 8;
+                }
+                
+                // Add student data with text truncation
+                doc.text(student.position.toString(), col1, yPos);
+                doc.text(student.name.substring(0, 28), col2, yPos);
+                doc.text(student.fatherName.substring(0, 24), col3, yPos);
+                doc.text(student.motherName.substring(0, 22), col4, yPos);
+                
+                // Draw horizontal line between rows
+                if (studentCount < studentsPerPage - 1 && index < drawnStudentsList.length - 1) {
+                    doc.setDrawColor(200, 200, 200);
+                    doc.setLineWidth(0.3);
+                    doc.line(contentMargin - 2, yPos + 3, pageWidth - contentMargin + 2, yPos + 3);
+                    doc.setDrawColor(0, 0, 0);
+                }
+                
+                yPos += lineHeight;
+                studentCount++;
+            });
+            
+            // Add page number and total on last page
+            const totalPages = Math.ceil(drawnStudentsList.length / studentsPerPage);
+            doc.setFontSize(8);
+            doc.text(`Page ${pageNumber} of ${totalPages}`, pageWidth / 2, pageHeight - 5, { align: 'center' });
+            doc.text(`Total Students: ${drawnStudentsList.length}`, pageWidth - contentMargin - 5, pageHeight - 5, { align: 'right' });
+            
+            // Save the PDF
+            const filename = `Class_Six_Lottery_${today.replace(/\//g, '-')}.pdf`;
+            doc.save(filename);
+        }
+
+        // Event Listeners
+        document.getElementById('startBtn').addEventListener('click', startLottery);
+        document.getElementById('pdfBtn').addEventListener('click', generatePDF);
+        document.getElementById('resetBtn').addEventListener('click', showResetModal);
+        document.getElementById('cancelBtn').addEventListener('click', closeResetModal);
+        document.getElementById('confirmBtn').addEventListener('click', confirmReset);
+
+        document.getElementById('resetModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeResetModal();
+            }
+        });
+
+        // Load saved data on page load
+        window.addEventListener('load', () => {
+            loadSavedData();
+        });
+    </script>
+    
+    <!-- jsPDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</body>
+</html>
