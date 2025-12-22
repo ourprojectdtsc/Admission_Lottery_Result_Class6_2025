@@ -1042,146 +1042,129 @@
             }
         }
 
-        // PDF Generation Function (Images converted to PDF)
-        async function generatePDF() {
+        // PDF Generation Function
+        function generatePDF() {
             if (drawnStudentsList.length === 0) {
                 alert('⚠️ No lottery results to download! Please draw some winners first.');
                 return;
             }
 
-            const today = new Date().toLocaleDateString('en-GB');
-
-            // Create a temporary container for rendering
-            const container = document.createElement('div');
-            container.style.position = 'absolute';
-            container.style.left = '-9999px';
-            container.style.top = '0';
-            document.body.appendChild(container);
-
             const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('p', 'px', 'a4');
-            const pdfWidth = 595;
-            const pdfHeight = 842;
-
-            // Calculate how many students fit per page dynamically
-            const headerHeight = 120; // Approximate header height
-            const footerHeight = 30;
-            const rowHeight = 35; // Each row height
-            const availableHeight = 1123 - headerHeight - footerHeight;
-            const studentsPerPage = Math.floor(availableHeight / rowHeight);
-
-            const totalPages = Math.ceil(drawnStudentsList.length / studentsPerPage);
-
-            // Generate each page
-            for (let pageNum = 0; pageNum < totalPages; pageNum++) {
-                const startIdx = pageNum * studentsPerPage;
-                const endIdx = Math.min(startIdx + studentsPerPage, drawnStudentsList.length);
-                const pageStudents = drawnStudentsList.slice(startIdx, endIdx);
-
-                // Create page HTML with cut lines
-                const pageHTML = `
-                    <div style="width: 794px; height: 1123px; background: white; border: 3px solid black; font-family: Arial, sans-serif; position: relative; box-sizing: border-box;">
-                        <!-- Header -->
-                        <div style="text-align: center; padding: 15px 20px; border-bottom: 2px solid black;">
-                            <div style="font-size: 24px; font-weight: bold; margin-bottom: 8px;">
-                                Dumuria Government Technical School & College
-                            </div>
-                            <div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">
-                                Class Six Student List - Lottery Results
-                            </div>
-                            <div style="font-size: 14px; color: #666;">
-                                Date: ${today}
-                            </div>
-                        </div>
-
-                        <!-- Student Cards with Cut Lines -->
-                        <div style="padding: 10px 15px;">
-                            ${pageStudents.map((student, idx) => `
-                                <div style="
-                                    border: 2px dashed #666; 
-                                    margin: 8px 0; 
-                                    padding: 8px 12px; 
-                                    background: #f9f9f9;
-                                    position: relative;
-                                    border-radius: 5px;
-                                ">
-                                    <!-- Scissors icon -->
-                                    <div style="position: absolute; left: -25px; top: 50%; transform: translateY(-50%); font-size: 16px;">✂️</div>
-                                    
-                                    <div style="display: flex; gap: 15px; align-items: center;">
-                                        <!-- Position Badge -->
-                                        <div style="
-                                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                                            color: white;
-                                            padding: 8px 12px;
-                                            border-radius: 8px;
-                                            font-weight: bold;
-                                            font-size: 16px;
-                                            min-width: 50px;
-                                            text-align: center;
-                                        ">
-                                            #${student.position}
-                                        </div>
-                                        
-                                        <!-- Student Info -->
-                                        <div style="flex: 1;">
-                                            <div style="font-size: 14px; font-weight: bold; color: #2c3e50; margin-bottom: 4px;">
-                                                ${student.name}
-                                            </div>
-                                            <div style="font-size: 11px; color: #555; display: flex; gap: 20px;">
-                                                <span>👨 Father: <strong>${student.fatherName}</strong></span>
-                                                <span>👩 Mother: <strong>${student.motherName}</strong></span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-
-                        <!-- Footer -->
-                        <div style="position: absolute; bottom: 10px; width: 100%; padding: 0 20px; font-size: 11px; color: #666; display: flex; justify-content: space-between; border-top: 1px solid #ddd; padding-top: 5px;">
-                            <div style="text-align: center; flex: 1;">Page ${pageNum + 1} of ${totalPages}</div>
-                            <div style="text-align: right;">Total Students: ${drawnStudentsList.length}</div>
-                        </div>
-                    </div>
-                `;
-
-                container.innerHTML = pageHTML;
-                const pageElement = container.firstElementChild;
-
-                // Wait for rendering
-                await new Promise(resolve => setTimeout(resolve, 100));
-
-                // Convert to canvas
-                const canvas = await html2canvas(pageElement, {
-                    scale: 2,
-                    useCORS: true,
-                    allowTaint: true,
-                    backgroundColor: '#ffffff',
-                    width: 794,
-                    height: 1123
-                });
-
-                // Convert canvas to image
-                const imgData = canvas.toDataURL('image/jpeg', 0.95);
-
-                // Add new page if not first page
-                if (pageNum > 0) {
-                    pdf.addPage();
+            const doc = new jsPDF();
+            
+            // Page setup - NO MARGINS
+            const pageWidth = 210; // A4 width in mm
+            const pageHeight = 297; // A4 height in mm
+            const margin = 0; // NO MARGIN
+            const contentMargin = 10; // Small internal padding for text
+            const lineHeight = 7;
+            const studentsPerPage = 30;
+            
+            // Draw border for entire page (edge to edge)
+            doc.setLineWidth(1);
+            doc.rect(0, 0, pageWidth, pageHeight);
+            
+            // Title
+            doc.setFontSize(18);
+            doc.setFont(undefined, 'bold');
+            doc.text('Dumuria Government Technical School & College', pageWidth / 2, 15, { align: 'center' });
+            
+            doc.setFontSize(14);
+            doc.text('Class Six Student List - Lottery Results', pageWidth / 2, 23, { align: 'center' });
+            
+            // Add date
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            const today = new Date().toLocaleDateString('en-GB');
+            doc.text(`Date: ${today}`, pageWidth / 2, 30, { align: 'center' });
+            
+            // Table header
+            let yPos = 43;
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'bold');
+            
+            // Column positions
+            const col1 = contentMargin; // Position
+            const col2 = col1 + 20; // Student Name
+            const col3 = col2 + 70; // Father Name
+            const col4 = col3 + 60; // Mother Name
+            
+            doc.text('Pos.', col1, yPos);
+            doc.text('Student Name', col2, yPos);
+            doc.text('Father Name', col3, yPos);
+            doc.text('Mother Name', col4, yPos);
+            
+            // Draw line under header
+            doc.setLineWidth(0.5);
+            doc.line(contentMargin - 2, yPos + 2, pageWidth - contentMargin + 2, yPos + 2);
+            
+            // Table content
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(9);
+            yPos += 8;
+            
+            let pageNumber = 1;
+            let studentCount = 0;
+            
+            drawnStudentsList.forEach((student, index) => {
+                // Check if we need a new page (30 students per page)
+                if (studentCount === studentsPerPage) {
+                    // Add page number at bottom
+                    doc.setFontSize(8);
+                    doc.text(`Page ${pageNumber}`, pageWidth / 2, pageHeight - 5, { align: 'center' });
+                    
+                    doc.addPage();
+                    pageNumber++;
+                    studentCount = 0;
+                    
+                    // Draw border for new page (edge to edge)
+                    doc.setLineWidth(1);
+                    doc.rect(0, 0, pageWidth, pageHeight);
+                    
+                    yPos = 20;
+                    
+                    // Repeat header on new page
+                    doc.setFontSize(11);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('Pos.', col1, yPos);
+                    doc.text('Student Name', col2, yPos);
+                    doc.text('Father Name', col3, yPos);
+                    doc.text('Mother Name', col4, yPos);
+                    doc.setLineWidth(0.5);
+                    doc.line(contentMargin - 2, yPos + 2, pageWidth - contentMargin + 2, yPos + 2);
+                    
+                    doc.setFont(undefined, 'normal');
+                    doc.setFontSize(9);
+                    yPos += 8;
                 }
-
-                // Add image to PDF
-                pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-            }
-
-            // Remove temporary container
-            document.body.removeChild(container);
-
-            // Save PDF
+                
+                // Add student data with text truncation
+                doc.text(student.position.toString(), col1, yPos);
+                doc.text(student.name.substring(0, 28), col2, yPos);
+                doc.text(student.fatherName.substring(0, 24), col3, yPos);
+                doc.text(student.motherName.substring(0, 22), col4, yPos);
+                
+                // Draw horizontal line between rows
+                if (studentCount < studentsPerPage - 1 && index < drawnStudentsList.length - 1) {
+                    doc.setDrawColor(200, 200, 200);
+                    doc.setLineWidth(0.3);
+                    doc.line(contentMargin - 2, yPos + 3, pageWidth - contentMargin + 2, yPos + 3);
+                    doc.setDrawColor(0, 0, 0);
+                }
+                
+                yPos += lineHeight;
+                studentCount++;
+            });
+            
+            // Add page number and total on last page
+            const totalPages = Math.ceil(drawnStudentsList.length / studentsPerPage);
+            doc.setFontSize(8);
+            doc.text(`Page ${pageNumber} of ${totalPages}`, pageWidth / 2, pageHeight - 5, { align: 'center' });
+            doc.text(`Total Students: ${drawnStudentsList.length}`, pageWidth - contentMargin - 5, pageHeight - 5, { align: 'right' });
+            
+            // Save the PDF
             const filename = `Class_Six_Lottery_${today.replace(/\//g, '-')}.pdf`;
-            pdf.save(filename);
-
-            alert(`✅ PDF with ${totalPages} page(s) downloaded successfully!`);
+            doc.save(filename);
         }
 
         // Event Listeners
@@ -1203,9 +1186,7 @@
         });
     </script>
     
-    <!-- html2canvas Library for rendering -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <!-- jsPDF Library for PDF generation -->
+    <!-- jsPDF Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </body>
 </html>
