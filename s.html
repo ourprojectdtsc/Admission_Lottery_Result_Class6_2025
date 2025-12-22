@@ -1050,8 +1050,6 @@
             }
 
             const today = new Date().toLocaleDateString('en-GB');
-            const studentsPerPage = 26;
-            const totalPages = Math.ceil(drawnStudentsList.length / studentsPerPage);
 
             // Create a temporary container for rendering
             const container = document.createElement('div');
@@ -1061,9 +1059,18 @@
             document.body.appendChild(container);
 
             const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('p', 'px', 'a4'); // Portrait, pixels, A4 size
-            const pdfWidth = 595; // A4 width in points
-            const pdfHeight = 842; // A4 height in points
+            const pdf = new jsPDF('p', 'px', 'a4');
+            const pdfWidth = 595;
+            const pdfHeight = 842;
+
+            // Calculate how many students fit per page dynamically
+            const headerHeight = 120; // Approximate header height
+            const footerHeight = 30;
+            const rowHeight = 35; // Each row height
+            const availableHeight = 1123 - headerHeight - footerHeight;
+            const studentsPerPage = Math.floor(availableHeight / rowHeight);
+
+            const totalPages = Math.ceil(drawnStudentsList.length / studentsPerPage);
 
             // Generate each page
             for (let pageNum = 0; pageNum < totalPages; pageNum++) {
@@ -1071,11 +1078,11 @@
                 const endIdx = Math.min(startIdx + studentsPerPage, drawnStudentsList.length);
                 const pageStudents = drawnStudentsList.slice(startIdx, endIdx);
 
-                // Create page HTML
+                // Create page HTML with cut lines
                 const pageHTML = `
                     <div style="width: 794px; height: 1123px; background: white; border: 3px solid black; font-family: Arial, sans-serif; position: relative; box-sizing: border-box;">
                         <!-- Header -->
-                        <div style="text-align: center; padding: 15px 20px;">
+                        <div style="text-align: center; padding: 15px 20px; border-bottom: 2px solid black;">
                             <div style="font-size: 24px; font-weight: bold; margin-bottom: 8px;">
                                 Dumuria Government Technical School & College
                             </div>
@@ -1087,32 +1094,52 @@
                             </div>
                         </div>
 
-                        <!-- Table -->
-                        <div style="padding: 0 15px;">
-                            <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-                                <thead>
-                                    <tr style="background: #f0f0f0; border-bottom: 2px solid black;">
-                                        <th style="padding: 10px 8px; text-align: left; width: 50px; font-weight: bold; border-right: 1px solid #ddd;">Pos.</th>
-                                        <th style="padding: 10px 8px; text-align: left; font-weight: bold; border-right: 1px solid #ddd;">Student Name</th>
-                                        <th style="padding: 10px 8px; text-align: left; font-weight: bold; border-right: 1px solid #ddd;">Father Name</th>
-                                        <th style="padding: 10px 8px; text-align: left; font-weight: bold;">Mother Name</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${pageStudents.map((student, idx) => `
-                                        <tr style="border-bottom: 1px solid #e0e0e0;">
-                                            <td style="padding: 8px; border-right: 1px solid #ddd;">${student.position}</td>
-                                            <td style="padding: 8px; border-right: 1px solid #ddd;">${student.name}</td>
-                                            <td style="padding: 8px; border-right: 1px solid #ddd;">${student.fatherName}</td>
-                                            <td style="padding: 8px;">${student.motherName}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
+                        <!-- Student Cards with Cut Lines -->
+                        <div style="padding: 10px 15px;">
+                            ${pageStudents.map((student, idx) => `
+                                <div style="
+                                    border: 2px dashed #666; 
+                                    margin: 8px 0; 
+                                    padding: 8px 12px; 
+                                    background: #f9f9f9;
+                                    position: relative;
+                                    border-radius: 5px;
+                                ">
+                                    <!-- Scissors icon -->
+                                    <div style="position: absolute; left: -25px; top: 50%; transform: translateY(-50%); font-size: 16px;">✂️</div>
+                                    
+                                    <div style="display: flex; gap: 15px; align-items: center;">
+                                        <!-- Position Badge -->
+                                        <div style="
+                                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                            color: white;
+                                            padding: 8px 12px;
+                                            border-radius: 8px;
+                                            font-weight: bold;
+                                            font-size: 16px;
+                                            min-width: 50px;
+                                            text-align: center;
+                                        ">
+                                            #${student.position}
+                                        </div>
+                                        
+                                        <!-- Student Info -->
+                                        <div style="flex: 1;">
+                                            <div style="font-size: 14px; font-weight: bold; color: #2c3e50; margin-bottom: 4px;">
+                                                ${student.name}
+                                            </div>
+                                            <div style="font-size: 11px; color: #555; display: flex; gap: 20px;">
+                                                <span>👨 Father: <strong>${student.fatherName}</strong></span>
+                                                <span>👩 Mother: <strong>${student.motherName}</strong></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
                         </div>
 
                         <!-- Footer -->
-                        <div style="position: absolute; bottom: 10px; width: 100%; padding: 0 20px; font-size: 11px; color: #666; display: flex; justify-content: space-between;">
+                        <div style="position: absolute; bottom: 10px; width: 100%; padding: 0 20px; font-size: 11px; color: #666; display: flex; justify-content: space-between; border-top: 1px solid #ddd; padding-top: 5px;">
                             <div style="text-align: center; flex: 1;">Page ${pageNum + 1} of ${totalPages}</div>
                             <div style="text-align: right;">Total Students: ${drawnStudentsList.length}</div>
                         </div>
@@ -1122,7 +1149,7 @@
                 container.innerHTML = pageHTML;
                 const pageElement = container.firstElementChild;
 
-                // Wait for fonts to load
+                // Wait for rendering
                 await new Promise(resolve => setTimeout(resolve, 100));
 
                 // Convert to canvas
@@ -1143,7 +1170,7 @@
                     pdf.addPage();
                 }
 
-                // Add image to PDF (fit to A4 size)
+                // Add image to PDF
                 pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
             }
 
